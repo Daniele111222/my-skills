@@ -18,22 +18,24 @@ cacheable: true
 
 ## Reference 引用说明
 
-本Skill通过内置的 Reference 机制暴露规则文件，供AI按需读取。规则文件位于skill目录的 `references/rules/` 下。
+本Skill的规则文件位于 skill 目录的 `references/rules/` 下，可通过标准 Read 工具读取。
 
-| 规则名称 | 文件路径 | 说明 |
+**如何获取 skill 根目录**：本 skill 的 `location` 字段声明在 available_skills 中。去掉文件名 `SKILL.md` 后得到根目录，然后拼接 `references/rules/` 即可定位规则文件。
+
+| 规则名称 | 相对路径 | 说明 |
 |---------|---------|------|
-| react-patterns | `@path references/rules/react-patterns.md` | React组件开发规范 |
-| ts-strict | `@path references/rules/ts-strict.md` | TypeScript严格类型规范 |
-| ui-system | `@path references/rules/ui-system.md` | UI/样式系统规范 |
-| testing-strategy | `@path references/rules/testing-strategy.md` | 测试策略规范 |
-| security-compliance | `@path references/rules/security-compliance.md` | 安全与合规规范 |
-| performance-tuning | `@path references/rules/performance-tuning.md` | 性能优化规范 |
+| react-patterns | `references/rules/react-patterns.md` | React组件开发规范 |
+| ts-strict | `references/rules/ts-strict.md` | TypeScript严格类型规范 |
+| ui-system | `references/rules/ui-system.md` | UI/样式系统规范 |
+| testing-strategy | `references/rules/testing-strategy.md` | 测试策略规范 |
+| security-compliance | `references/rules/security-compliance.md` | 安全与合规规范 |
+| performance-tuning | `references/rules/performance-tuning.md` | 性能优化规范 |
 
 ### 读取时机
 
-当触发器匹配成功后，AI应自动读取对应的规则文件：
-- 读取方式：使用 `@path` 引用直接加载文件内容到上下文
-- 读取时机：触发器匹配成功后，加载规则内容作为最高优先级约束
+当触发器匹配成功后，使用 Read 工具读取规则文件：
+- 规则文件位置：`<skill根目录>/references/rules/<规则名>.md`
+- 读取时机：触发器匹配成功后立即读取，将规则内容作为最高优先级约束
 
 ---
 
@@ -75,21 +77,23 @@ cacheable: true
 
 ### 规则映射表
 
-| 触发条件 | 依赖资源URI | 说明 |
+**Skill根目录**：从 SKILL.md 的 location 字段推导
+
+| 触发条件 | 规则文件（相对路径） | 说明 |
 |---------|-------------|------|
-| **后缀**: `.ts`, `.tsx` + 关键词: `interface`, `type`, `enum` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ts-strict.md` | TypeScript类型定义 |
-| **后缀**: `.tsx` + 关键词: `component`, `props`, `hook`, `React` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md` | React组件开发 |
-| **关键词**: `style`, `css`, `tailwind`, `layout`, `ui` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ui-system.md` | 样式与布局 |
-| **后缀**: `.test.ts`, `.test.tsx`, `.spec.ts`, `.spec.tsx` + **关键词**: `test`, `spec`, `mock`, `coverage`, `vitest` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/testing-strategy.md` | 测试编写 |
-| **关键词**: `api`, `auth`, `security`, `token`, `encrypt` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/security-compliance.md` | API与安全 |
-| **关键词**: `performance`, `optimize`, `bundle`, `lazy` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/performance-tuning.md` | 性能优化 |
-| **命令**: `/review`, `/audit` | **加载所有资源** | 代码审查模式 |
-| **命令**: `/ts` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ts-strict.md` | TypeScript 类型检查 |
-| **命令**: `/react`, `/component` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md` | React 组件开发 |
-| **命令**: `/ui`, `/style`, `/design` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ui-system.md` | UI 样式设计 |
-| **命令**: `/test`, `/spec` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/testing-strategy.md` | 测试编写 |
-| **命令**: `/security`, `/audit` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/security-compliance.md` | API 与安全 |
-| **命令**: `/perf`, `/optimize` | `file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/performance-tuning.md` | 性能优化 |
+| **后缀**: `.ts`, `.tsx` + 关键词: `interface`, `type`, `enum` | `references/rules/ts-strict.md` | TypeScript类型定义 |
+| **后缀**: `.tsx` + 关键词: `component`, `props`, `hook`, `React` | `references/rules/react-patterns.md` | React组件开发 |
+| **关键词**: `style`, `css`, `tailwind`, `layout`, `ui` | `references/rules/ui-system.md` | 样式与布局 |
+| **后缀**: `.test.ts`, `.test.tsx`, `.spec.ts`, `.spec.tsx` + **关键词**: `test`, `spec`, `mock`, `coverage`, `vitest` | `references/rules/testing-strategy.md` | 测试编写 |
+| **关键词**: `api`, `auth`, `security`, `token`, `encrypt` | `references/rules/security-compliance.md` | API与安全 |
+| **关键词**: `performance`, `optimize`, `bundle`, `lazy` | `references/rules/performance-tuning.md` | 性能优化 |
+| **命令**: `/review`, `/audit` | **加载所有规则文件** | 代码审查模式 |
+| **命令**: `/ts` | `references/rules/ts-strict.md` | TypeScript 类型检查 |
+| **命令**: `/react`, `/component` | `references/rules/react-patterns.md` | React 组件开发 |
+| **命令**: `/ui`, `/style`, `/design` | `references/rules/ui-system.md` | UI 样式设计 |
+| **命令**: `/test`, `/spec` | `references/rules/testing-strategy.md` | 测试编写 |
+| **命令**: `/security`, `/audit` | `references/rules/security-compliance.md` | API 与安全 |
+| **命令**: `/perf`, `/optimize` | `references/rules/performance-tuning.md` | 性能优化 |
 
 ---
 
@@ -114,15 +118,12 @@ cacheable: true
 
 1. **声明触发**（在响应开头）:
    ```
-   [System]: 检测到触发条件 [React组件开发]，正在加载依赖资源 [file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md]
+   [System]: 检测到触发条件 [React组件开发]，正在读取规则文件 [references/rules/react-patterns.md]
    ```
 
-2. **读取资源**（使用 MCP Resource 工具）:
-   ```typescript
-   // 使用 MCP resources/read 工具
-   {
-     "uri": "file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md"
-   }
+2. **读取规则文件**（使用 Read 工具）:
+   ```
+   Read: <skill根目录>/references/rules/react-patterns.md
    ```
 
 3. **应用规则**（将加载的内容作为最高优先级约束）:
@@ -221,11 +222,11 @@ AI分析:
 - 关键词: component, props (命中)
 - 触发: React组件模式 + TypeScript严格类型
 
-[System]: 检测到触发条件 [React组件开发]，正在加载依赖资源 [file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md, file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ts-strict.md]...
+[System]: 检测到触发条件 [React组件开发]，正在读取规则文件 [react-patterns.md, ts-strict.md]...
 
-[MCP Resource读取]: 
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md ✓
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ts-strict.md ✓
+[Read工具读取]: 
+- references/rules/react-patterns.md ✓
+- references/rules/ts-strict.md ✓
 
 [System]: 规则加载完成，开始生成组件...
 
@@ -241,9 +242,9 @@ AI分析:
 - 关键词: style, tailwind, ui, design (命中)
 - 触发: UI系统设计
 
-[System]: 检测到触发条件 [UI样式设计]，正在加载依赖资源 [file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ui-system.md]...
+[System]: 检测到触发条件 [UI样式设计]，正在读取规则文件 [ui-system.md]...
 
-[MCP Resource读取]: file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ui-system.md ✓
+[Read工具读取]: references/rules/ui-system.md ✓
 
 [生成的样式代码，完全符合规则要求]
 ```
@@ -257,15 +258,15 @@ AI分析:
 - 命令: /review (命中 LOAD ALL)
 - 触发: 加载所有规则
 
-[System]: 检测到触发条件 [代码审查命令]，正在加载所有依赖资源 [@rules/*.md]...
+[System]: 检测到触发条件 [代码审查命令]，正在读取所有规则文件...
 
-[MCP Resource读取]:
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/react-patterns.md ✓
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ts-strict.md ✓
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/ui-system.md ✓
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/testing-strategy.md ✓
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/security-compliance.md ✓
-- file:///C:/Users/hyperchain/.agents/skills/rule-trigger-system/references/rules/performance-tuning.md ✓
+[Read工具读取]:
+- references/rules/react-patterns.md ✓
+- references/rules/ts-strict.md ✓
+- references/rules/ui-system.md ✓
+- references/rules/testing-strategy.md ✓
+- references/rules/security-compliance.md ✓
+- references/rules/performance-tuning.md ✓
 
 [System]: 所有规则加载完成，开始代码审查...
 
@@ -325,12 +326,12 @@ version: "1.0.0"
 2. 启用规则缓存（设置`cacheable: true`）
 3. 优化规则文件的读取方式（按需读取，不要一次性读取所有规则）
 
-### MCP Resource 读取失败
+### 规则文件读取失败
 
-**症状**: `[System]: 资源文件 [URI] 读取失败`
+**症状**: Read 工具返回文件不存在或无权限
 
 **解决方案**:
-1. 检查文件路径是否正确
+1. 确认路径：`<skill根目录>/references/rules/`
 2. 确认文件存在且可读
 3. 如果持续失败，回退到全局默认原则继续执行任务
 
