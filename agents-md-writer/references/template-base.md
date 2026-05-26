@@ -2,6 +2,8 @@
 
 Universal sections every `AGENTS.md` should include. Adapt phrasing to the project's actual situation — don't paste verbatim.
 
+**CRITICAL**: Every section below has a "validation gate". If the gate condition is not met, DELETE the section entirely. An empty section filled with generic advice is worse than no section.
+
 ---
 
 ## Section: Header
@@ -9,7 +11,7 @@ Universal sections every `AGENTS.md` should include. Adapt phrasing to the proje
 ```markdown
 # {{ProjectName}} — AI 开发规范
 
-**技术栈**: {{primary frameworks + versions}}
+**技术栈**: {{primary frameworks, no version numbers}}
 **项目类型**: {{archetype}}
 **目标读者**: AI 编程助手（Claude Code / Cursor / Copilot 等）为主，人类开发者次之
 
@@ -17,6 +19,10 @@ Universal sections every `AGENTS.md` should include. Adapt phrasing to the proje
 ```
 
 ## Section: 核心开发理念
+
+<!-- VALIDATION GATE: Each bucket MUST contain at least 1 rule that is specific to THIS project
+     (passes the specificity test from writing-style.md). If a bucket only has generic knowledge
+     like "高内聚低耦合" or "声明式 UI", delete that bucket. -->
 
 3-5 capability buckets. Each bucket is a heading + 2-4 bullets. Pick buckets that match the archetype:
 
@@ -38,9 +44,25 @@ Universal sections every `AGENTS.md` should include. Adapt phrasing to the proje
 
 Avoid abstract aspirations ("写优雅的代码"). Each bullet should be checkable.
 
+**Anti-pattern examples** (DELETE these if they appear in your draft):
+- "组件应高内聚低耦合" — too generic, applies to all projects
+- "基于状态渲染 UI" — basic React, not a project rule
+- "使用 Hooks 管理状态与副作用" — basic React, not a project rule
+- "防御性编程：外部数据判空" — universal practice, not project-specific
+
+**Good examples** (project-specific, keep these):
+- "3D 动画必须使用 `useFrame`，禁止 `setInterval` — 避免帧率不同步导致抖动"
+- "所有 API 响应必须经过 `src/utils/responseNormalizer.ts` 标准化后再使用"
+- "移动端 CSS 写 px，由 postcss-px-to-viewport 转 vw；禁止手写 vw/rem"
+
 ---
 
 ## Section: 项目背景与最高优先级原则（红线）
+
+<!-- VALIDATION GATE: This section is ALWAYS required. But each sub-rule must:
+     1. Have been confirmed via scan or interview (no fabrication)
+     2. Include a "why" clause explaining the consequence of violation
+     3. Reference actual file paths that were verified to exist -->
 
 This is the **most important section**. AI reads it first.
 
@@ -79,19 +101,25 @@ The 5 categories above are a checklist. If a category genuinely doesn't apply, d
 
 ## Section: 技术栈与项目结构
 
+<!-- VALIDATION GATE: Do NOT list exact version numbers here — they rot fast.
+     Instead, reference package.json/pyproject.toml for versions.
+     Only list the tech category + name + a note about WHY it was chosen or HOW it's used.
+     Directory structure must match actual `ls` output, not imagination. -->
+
 ### 核心技术栈表格
 
 ```markdown
-| 类别 | 技术选型 | 版本 | 说明 |
-|------|---------|------|------|
-| 框架 | {{name}} | {{version}} | {{1-clause note}} |
-| 语言 | {{name}} | {{version}} | {{1-clause note}} |
-| 构建 | {{name}} | {{version}} | {{1-clause note}} |
-| {{UI lib / ORM / etc}} | {{name}} | {{version}} | {{1-clause note}} |
-| 测试 | {{name}} | {{version}} | {{1-clause note}} |
+| 类别 | 技术选型 | 说明 |
+|------|---------|------|
+| 框架 | {{name}} | {{1-clause note on how it's used}} |
+| 语言 | {{name}} | {{1-clause note}} |
+| 构建 | {{name}} | {{1-clause note}} |
+| {{UI lib / ORM / etc}} | {{name}} | {{1-clause note}} |
+| 测试 | {{name}} | {{1-clause note}} |
 ```
 
 Only list categories the project actually uses. Empty rows ("- 无") are noise.
+**Do NOT include version numbers** — they belong in package.json and will go stale here.
 
 ### 目录结构
 
@@ -107,6 +135,10 @@ Keep to top 2 levels. Drill into a third level only if it carries a rule (e.g. "
 ---
 
 ## Section: 检查与验证机制
+
+<!-- VALIDATION GATE: Only include checks that are NOT already automated by CI/lint.
+     If ESLint already catches unused vars, don't list "no unused vars" here.
+     Focus on checks that require human/AI judgment. -->
 
 ### 代码提交前检查清单
 
@@ -135,6 +167,11 @@ Keep to top 2 levels. Drill into a third level only if it carries a rule (e.g. "
 
 ## Section: 公共工具与约定
 
+<!-- VALIDATION GATE: ONLY list utilities that were OBSERVED in the Phase 1 scan.
+     Every path and function name here must have been confirmed to exist.
+     If you didn't see it in the code, don't write it here.
+     DELETE this section entirely if the project has no shared utilities worth calling out. -->
+
 List shared helpers the team wants AI to **reuse rather than reinvent**. One bullet per helper:
 
 ```markdown
@@ -142,3 +179,22 @@ List shared helpers the team wants AI to **reuse rather than reinvent**. One bul
 ```
 
 Only include utils that were observed in the scan or confirmed in the interview. Don't invent.
+
+**Anti-pattern**: Listing a utility that doesn't exist yet ("建议创建 `src/utils/dateUtils.ts`"). AGENTS.md documents current reality, not aspirations. If a utility should exist but doesn't, mention it in a "Known Follow-Ups" section or suggest it to the user separately.
+
+---
+
+## Section: 本文档的维护规则（必须包含）
+
+<!-- This section is ALWAYS included as the final section of the generated AGENTS.md -->
+
+```markdown
+## 📌 本文档的维护规则
+
+- AGENTS.md 中的每条规则必须能回答"违反它会导致什么具体后果"——无法回答的规则应删除
+- 能被 lint / CI / 类型检查自动强制的规则不重复写入，除非需要解释 why
+- 发现文档与代码不一致时，以代码为准，更新文档
+- 新增公共组件/工具/约定时，评估是否需要同步更新本文档
+
+<!-- last-verified: {{YYYY-MM-DD}} -->
+```

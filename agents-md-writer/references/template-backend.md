@@ -2,9 +2,16 @@
 
 For HTTP / RPC / GraphQL services (Express, Nest, Fastify, Koa, FastAPI, Django, Flask, Spring, Gin, Echo, Rails, .NET, etc.).
 
+**IMPORTANT**: This template provides STRUCTURE, not content. Every rule you include must come from actual project observation or user confirmation. Generic backend best practices that apply to all services should be DELETED unless the project has specific reason to emphasize them.
+
 ---
 
 ## Core philosophy additions
+
+<!-- VALIDATION GATE: Only include bullets that reflect THIS project's actual architecture.
+     "路由层只做参数校验" is common advice but KEEP it if the project has a history of fat controllers.
+     "业务逻辑集中在 service 层" — KEEP only if the project actually has a service layer.
+     DELETE bullets that describe aspirational architecture not yet implemented. -->
 
 - **接口契约优先**
   - 路由 / Schema / Type 三者保持单一事实源（OpenAPI / Zod / Pydantic / Protobuf / TypeBox）
@@ -24,6 +31,13 @@ For HTTP / RPC / GraphQL services (Express, Nest, Fastify, Koa, FastAPI, Django,
 ---
 
 ## Red-line additions
+
+<!-- VALIDATION GATE: Each rule block below should only be included if:
+     1. The project actually uses the referenced tools/patterns
+     2. The file paths mentioned have been verified to exist
+     3. The rules address real problems (past incidents, team pain points)
+     Generic security advice like "validate all input" should only be included
+     if the project has had actual security issues or the team specifically requested it. -->
 
 ```markdown
 #### 接口层规范（强制）
@@ -61,6 +75,11 @@ For HTTP / RPC / GraphQL services (Express, Nest, Fastify, Koa, FastAPI, Django,
 
 ## Section: 项目结构（典型布局）
 
+<!-- VALIDATION GATE: This structure must match the ACTUAL `ls` output of the project.
+     If the project uses `app/` instead of `src/`, show `app/`.
+     If there's no `migrations/` directory, don't include it.
+     Never show a directory that doesn't exist yet — that's aspirational, not a constraint. -->
+
 ```markdown
 src/
 ├── routes/ (或 controllers/)   # 路由 / 接口入口，只做参数校验 + 编排
@@ -85,6 +104,10 @@ Adapt to actual layout. If the project uses Hexagonal / DDD / Clean Architecture
 
 ## Section: 数据库与迁移
 
+<!-- VALIDATION GATE: Only include if the project actually uses a database.
+     ORM name, naming conventions, and migration tool must be confirmed from actual code/config.
+     If no migrations directory exists yet, note it as a follow-up, don't write migration rules. -->
+
 ```markdown
 ### 数据库规范
 - ORM：{{Prisma / TypeORM / SQLAlchemy / GORM / 等}}
@@ -103,6 +126,10 @@ Adapt to actual layout. If the project uses Hexagonal / DDD / Clean Architecture
 ---
 
 ## Section: 日志与错误
+
+<!-- VALIDATION GATE: Only include if the project has an established logging pattern.
+     Check for actual logger imports in the code. If the project just uses print()/console.log(),
+     this section should note "需建立统一日志方案" rather than prescribing one that doesn't exist. -->
 
 ```markdown
 ### 日志
@@ -124,6 +151,10 @@ Adapt to actual layout. If the project uses Hexagonal / DDD / Clean Architecture
 
 ## Section: 测试
 
+<!-- VALIDATION GATE: Only include if the project has actual tests.
+     Check for test files, test config, and test commands in package.json/pyproject.toml.
+     If no tests exist yet, don't prescribe a full testing strategy — note it as a follow-up. -->
+
 ```markdown
 ### 测试规范
 - 单元测试：覆盖 service 层纯函数，目标行覆盖 > {{60-80%}}
@@ -137,6 +168,10 @@ Adapt to actual layout. If the project uses Hexagonal / DDD / Clean Architecture
 ---
 
 ## Section: 部署与运行时
+
+<!-- VALIDATION GATE: Only include if the project has deployment infrastructure.
+     Check for Dockerfile, docker-compose, CI config, health check endpoints.
+     If the project is still in early development with no deployment, skip this section. -->
 
 ```markdown
 ### 配置
@@ -172,3 +207,14 @@ Adapt to actual layout. If the project uses Hexagonal / DDD / Clean Architecture
 - 所有输入是否校验？SQL / 命令注入风险？
 - 权限边界是否清晰？水平越权 / 垂直越权？
 - 敏感信息是否脱敏？日志是否泄露 PII？
+
+---
+
+## Code examples requirement
+
+When including code examples in the generated AGENTS.md:
+
+1. **Service/route patterns must come from actual project code** (simplified). If the project uses class-based services with `__init__(self, db)`, show that pattern. If it uses standalone functions, show that.
+2. **Error handling examples must reflect the project's actual error hierarchy** — don't invent `BusinessError` if the project uses `HTTPException` directly.
+3. **Keep examples minimal** — show the pattern (5-15 lines), not the full implementation.
+4. **Never show aspirational code** — if the project doesn't have a pattern yet, don't invent one. Note it as a follow-up instead.
