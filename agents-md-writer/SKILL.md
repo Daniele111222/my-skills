@@ -1,6 +1,6 @@
 ---
 name: agents-md-writer
-description: Generate a project-specific AGENTS.md (also known as CLAUDE.md / development guidelines) that captures tech stack, conventions, red-line rules, directory layout, and review checklists for an existing codebase. Use this skill whenever the user asks to write, draft, generate, refresh, or maintain an AGENTS.md / CLAUDE.md / 项目开发规范 / AI 协作规范 / 编码规范 document — even if they only say things like "为这个项目写一份给 AI 看的规范", "整理一下我们项目的开发约束", "生成 Cursor / Claude Code 用的项目指引", or "把这些约定写进 AGENTS.md". The skill works for any project type (frontend web, H5/mobile web, backend service, fullstack, CLI tool, library, mobile native), and produces output optimized for AI coding assistants to follow as hard constraints. Trigger it proactively when the user describes team conventions, red-line rules, or pain points and seems to be heading toward documenting them.
+description: Generate, refresh, or maintain a project-specific AGENTS.md / CLAUDE.md / AI collaboration guide for an existing codebase. Use when the user asks for "给 AI 看的项目规范", "AI 协作规范", "Cursor / Claude Code / Codex 项目指引", "把这些约定写进 AGENTS.md", or similar assistant-facing development rules. The skill captures verified tech stack, directory conventions, red-line rules, shared utilities, and review checklists as enforceable constraints. It supports frontend web, H5/mobile web, backend services, fullstack apps, CLIs, libraries, native mobile apps, and monorepos. Do not use for ordinary end-user README files, API reference docs, or generic style guides unless the target audience is AI coding assistants.
 ---
 
 # AGENTS.md Writer
@@ -25,9 +25,24 @@ Inspect (in parallel where possible):
 - **Config files** — `tsconfig.json`, `vite.config.*`, `next.config.*`, `webpack.config.*`, `tailwind.config.*`, `.eslintrc*`, `.prettierrc*`, `postcss.config.*`, `babel.config.*`, `jest.config.*`, `vitest.config.*`, `playwright.config.*`, `Dockerfile`, `docker-compose.yml`, `.env.example`.
 - **Top-level directory structure** — `Glob` for `src/**`, `app/**`, `pages/**`, `components/**`, `services/**`, `service/**`, `hooks/**`, `utils/**`, `lib/**`, `api/**`, `controllers/**`, `routes/**`, `models/**`, `migrations/**`, `tests/**`, `__tests__/**`, `e2e/**`, `docs/**`. Note: don't dump full trees into context — sample 1-2 representative subfolders.
 - **Existing docs** — `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `AGENTS.md`, `docs/*.md`. If `AGENTS.md` already exists, treat this as a refresh and preserve the user's intent.
-- **Representative source files** — pick 1 page/component and 1 service/api file to confirm the actual code style (CSS Module vs global CSS, naming, type usage, request wrapper).
+- **Representative source files** — pick **3-5 files** across different layers (page, component, service, hook, util) to confirm actual code style. 1 file is never enough to distinguish convention from coincidence.
+- **Git history** — run `git log --oneline -20` and `git log --diff-filter=M --name-only --pretty=format: -20 | sort | uniq -c | sort -rn | head -10` to identify recently active files and hotspots. Frequently modified files reveal pain points.
 
-Output of this phase: an internal mental model of project type, tech stack, layering, naming conventions, and any obvious style choices the user is already enforcing.
+**Convention signals to observe** (check these explicitly in the sampled files):
+
+| Signal | What to look for |
+|--------|-----------------|
+| Import order | Is there a consistent grouping? (React → 3rd-party → internal → types → styles) |
+| Error handling | try-catch in components? Error boundaries? Service-level error wrapping? |
+| State management | Which store library? How is auth state actually stored? (memory / localStorage / cookie) |
+| Naming | File naming (PascalCase / camelCase / kebab-case)? Export style (named / default)? |
+| Request pattern | Object methods (`authService.login`) or standalone functions (`export async function login`)? |
+| Type definitions | Co-located with service? Separate `types/` folder? Inline? |
+| Test pattern | Where do tests live? What's the naming convention? What's tested? |
+
+**Fact verification rule**: Every file path, utility name, or code pattern you later write into AGENTS.md must have been confirmed to exist during this scan. If you didn't see it, don't write it.
+
+Output of this phase: an internal mental model of project type, tech stack, layering, naming conventions, and any obvious style choices the user is already enforcing. Plus a list of verified facts (paths, patterns, tools) you can reference in the draft.
 
 ### Phase 2 — Classify the project
 
@@ -54,12 +69,13 @@ After classification, read the matching reference file(s) from `references/`:
 - `references/template-mobile-native.md` — native app specifics.
 - `references/template-cli-library.md` — packaged tool specifics.
 - `references/writing-style.md` — read this every time; it governs tone and structure.
+- `references/example-h5-react.md` — optional worked example; read only when you need to see how the templates compose for a real H5 project. Never paste from it verbatim.
 
 ### Phase 3 — Interview to fill gaps
 
 After scanning you'll know the *what* (tech stack, layout) but not the *why* (team conventions, pain points, red-lines). Ask targeted questions — never blanket-questionnaire the user.
 
-Use `AskUserQuestion` to batch related questions (max 4 at a time, ideally 2-3). Group by theme so the user can answer in one pass.
+Batch related questions when the environment supports structured user input (max 4 at a time, ideally 2-3). If not, ask concise plain-text questions directly. Group by theme so the user can answer in one pass.
 
 Topics to cover (only ask what scanning didn't already answer):
 
@@ -74,6 +90,11 @@ Topics to cover (only ask what scanning didn't already answer):
 4. **Style / UI conventions** *(frontend only)* — CSS Module vs global, design tokens, theming, responsive strategy.
 5. **Shared utilities to call out** — date formatters, text truncation, ID handling, request wrapper, error reporter — anything the team wants AI to reuse instead of reinventing.
 6. **Review checklist priorities** — what does the team look at first in code review? (Types, perf, error handling, accessibility, security…)
+7. **Pain points & historical lessons** — the highest-value questions for producing a useful AGENTS.md:
+   - "AI 过去生成代码最常犯什么错误？"（直接转化为红线规则）
+   - "哪些规则你觉得需要但经常被违反？"（反映真实痛点而非理想规范）
+   - "项目当前最痛苦的技术债是什么？AI 应该如何对待它？"（决定历史代码处理策略）
+   - "有没有曾经因为某个错误导致线上事故的案例？"（转化为最高优先级红线）
 
 Skip topics that don't apply. A library project doesn't need NavHeader rules; a backend doesn't need viewport adaptation.
 
@@ -124,13 +145,57 @@ Follow `references/writing-style.md` strictly while drafting — it covers tone,
 - Don't fabricate file paths, util names, or component names. If something wasn't observed in the scan and wasn't confirmed in the interview, leave it out.
 - Output language matches the user's working language (default 中文 if the existing docs and conversation are in Chinese).
 
-### Phase 5 — Show and revise
+### Phase 5 — Fact-check the draft
+
+Before showing the user, verify every claim in the draft:
+
+1. **Path verification** — every file path mentioned in the document (e.g. `src/services/api.ts`, `src/utils/dateUtils.ts`) must be confirmed to exist via `Glob` or `Read`. If a path doesn't exist, remove the reference or ask the user.
+
+2. **Code pattern verification** — if the document says "使用 Zustand persist 持久化状态", confirm the actual store file uses `persist`. If it says "Axios 实例注入 Bearer token", confirm the interceptor code matches. Mismatches between AGENTS.md and reality are worse than having no AGENTS.md.
+
+3. **Redundancy check** — for each rule, ask: "Is this already enforced by a tool (ESLint rule, tsconfig flag, CI check)?" If yes, either:
+   - Remove it (the tool already prevents violations), or
+   - Keep it but mark: "（已由 `{{tool}}` 强制，此处记录供理解上下文）"
+
+4. **Specificity check** — for each rule, ask: "Would this rule apply to ANY project using the same tech stack?" If yes, it's generic and should be removed unless the project has a specific reason to emphasize it (e.g. the team has repeatedly violated it).
+
+5. **Example verification** — code examples in the document must come from actual project files (simplified if needed), not from templates or imagination.
+
+### Phase 6 — Show and revise
 
 Write the file to the project root as `AGENTS.md` (or whatever name the user picked — `CLAUDE.md`, `docs/ai-guidelines.md`, etc.).
 
 Then summarize in 2-3 lines: which sections you included, which optional sections you skipped and why, and ask if anything needs adjustment. Don't dump the full doc back into chat — the user can read the file.
 
 If the user requests changes, edit in place rather than regenerating from scratch.
+
+### Phase 7 — Maintenance strategy
+
+Before finishing, add these maintenance mechanisms to the document:
+
+1. **Timestamp** — add at the very end of the file:
+   ```
+   <!-- last-verified: YYYY-MM-DD -->
+   ```
+   This signals to future AI sessions when the doc was last confirmed accurate.
+
+2. **Decay-prone content warning** — if the document contains version numbers, component inventories, or file path lists, add a comment near them:
+   ```
+   <!-- ⚠️ 易过时内容：版本号/路径变更时需同步更新 -->
+   ```
+
+3. **Meta-rule** — include this as the final red-line rule in the document:
+   ```
+   ### 本文档的维护规则
+   - AGENTS.md 中的每条规则必须能回答"违反它会导致什么具体后果"——无法回答的规则应删除
+   - 能被 lint/CI/类型检查自动强制的规则不重复写入，除非需要解释 why
+   - 发现文档与代码不一致时，以代码为准，更新文档
+   ```
+
+4. **Advise the user** — in your summary message, mention:
+   - Which sections are most likely to go stale (version numbers, component lists)
+   - Suggest a cadence for review (e.g. "建议每月或每次大重构后重新验证一次")
+   - If the project has CI, suggest adding a reminder or a lightweight check
 
 ---
 
@@ -142,6 +207,9 @@ If the user requests changes, edit in place rather than regenerating from scratc
 - **Writing onboarding content.** This document is a constraint contract for AI, not a tutorial. Don't explain what React is. Don't explain what TypeScript does.
 - **Forgetting the why.** A red-line without a why is a future bug report. Always give one short reason.
 - **One giant file.** If the project genuinely needs more than ~600 lines of guidance, split: keep `AGENTS.md` lean and reference `docs/common-components.md`, `docs/api-conventions.md`, etc.
+- **Phantom references.** Never mention a file path, utility, or component that you haven't verified exists. "必须使用 `src/utils/dateUtils.ts`" is harmful if that file doesn't exist — AI will hallucinate an implementation or error out.
+- **Repeating tool-enforced rules.** If `tsconfig.json` already sets `"noUnusedLocals": true`, writing "禁止未使用变量" in AGENTS.md is redundant noise. Only document rules that tools cannot enforce.
+- **Template-filling without adaptation.** If a section from the reference template doesn't have project-specific content to fill, delete the section entirely. An empty section filled with generic advice is worse than no section.
 
 ---
 

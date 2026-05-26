@@ -78,3 +78,59 @@ Two short snippets beat one long one. Don't show full files.
 Match the user's working language. If existing docs are in Chinese, write in Chinese. If English, write in English. Don't mix unless the team's actual code comments mix (e.g. Chinese explanations + English identifiers — that's fine to mirror).
 
 Identifier names (file paths, function names, component names) stay in their original casing regardless of prose language.
+
+---
+
+## Specificity test
+
+Before including any rule, apply this filter:
+
+**"Would this rule apply to ANY project using the same tech stack?"**
+
+- If YES → it's generic knowledge, not a project constraint. **Delete it** unless the team has a specific reason to emphasize it (e.g. repeated violations, past incidents).
+- If NO → it's project-specific. **Keep it.**
+
+Examples of rules that FAIL the specificity test (should be deleted):
+- "组件应高内聚低耦合" — applies to all component-based projects
+- "使用 TypeScript 严格模式" — already in tsconfig, applies to all TS projects
+- "Props 接口必须显式声明类型" — basic TypeScript, not a project convention
+- "使用 useEffect 管理副作用" — basic React, not a project convention
+- "API 调用需要错误处理" — universal programming practice
+
+Examples of rules that PASS the specificity test (should be kept):
+- "access_token 存储在内存（`window.__ACCESS_TOKEN__`），refresh_token 存储在 cookie，禁止使用 localStorage" — project-specific auth architecture
+- "服务层使用 `export async function` 风格，不使用对象方法风格" — project-specific convention
+- "3D 场景组件必须使用 `useFrame` 而非 `setInterval`" — specific to R3F projects with a known anti-pattern
+- "禁止在页面 less 中手写 `padding-top` 解决导航栏遮挡 — 会与全局占位冲突" — project-specific gotcha
+
+---
+
+## Single source of truth
+
+AGENTS.md should not repeat information that already lives in a canonical source:
+
+| Information | Canonical source | AGENTS.md should... |
+|-------------|-----------------|---------------------|
+| Dependency versions | `package.json` / `pyproject.toml` | NOT list exact versions (they'll go stale) |
+| TypeScript strictness | `tsconfig.json` | NOT repeat compiler flags |
+| Lint rules | `.eslintrc` / `ruff.toml` | NOT repeat lint rules |
+| Build commands | `package.json` scripts | Reference by name (`npm run build`), not redefine |
+| Environment variables | `.env.example` | Only mention if there's a non-obvious convention |
+
+**What AGENTS.md IS for**: conventions that cannot be expressed in config files — architectural decisions, naming conventions, "where does X go", "when to use Y vs Z", "why we chose this approach".
+
+---
+
+## Decay prevention
+
+Some content types rot faster than others. Handle them accordingly:
+
+| Content type | Decay speed | Strategy |
+|-------------|-------------|----------|
+| Architectural rules ("routes stay thin") | Slow | Safe to include |
+| Directory structure | Medium | Include top-level only, skip file lists |
+| Component/util inventories | Fast | Don't list — reference the directory instead |
+| Version numbers | Very fast | Don't include; point to package.json |
+| Code examples | Medium | Use simplified patterns, not full file copies |
+
+**Rule of thumb**: If a piece of information would require updating AGENTS.md every time a PR merges, it shouldn't be in AGENTS.md.

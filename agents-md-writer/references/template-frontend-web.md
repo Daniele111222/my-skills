@@ -2,26 +2,38 @@
 
 Sections to add on top of `template-base.md` for browser-targeted frontend projects (React / Vue / Svelte / Angular, Vite / Next / Nuxt / Remix).
 
+**IMPORTANT**: This template provides STRUCTURE, not content. Every rule you include must come from actual project observation or user confirmation. Generic React/Vue/TS knowledge that applies to all projects should be DELETED.
+
 ---
 
 ## Core philosophy additions
 
-Add these buckets to `## 🎯 核心开发理念`:
+<!-- VALIDATION GATE: Only include bullets that are PROJECT-SPECIFIC.
+     "基于状态渲染" is basic React — delete it.
+     "受控组件优先" is basic React — delete it unless the project has a specific reason.
+     Keep only rules that reflect THIS project's actual conventions or past pain points. -->
 
-- **声明式 UI 与组件化**
-  - 基于状态渲染，禁止直接操作 DOM（除非显式注释说明）
-  - 组件 Props 接口必须显式声明类型
-  - 受控组件优先，明确数据流向
-  - 条件渲染使用早期返回或三元，避免 3 层以上嵌套
+Add these buckets to `## 🎯 核心开发理念` ONLY if they contain project-specific rules:
 
-- **状态与副作用边界**
-  - 业务逻辑抽离为纯函数或自定义 Hook
-  - 副作用集中在 `useEffect` / 服务层 / store，禁止散落
-  - 全局状态最小化，能 prop 传递的不进 store
+- **声明式 UI 与组件化** *(only include bullets that pass specificity test)*
+  - ~~基于状态渲染，禁止直接操作 DOM~~ ← DELETE (generic React)
+  - ~~组件 Props 接口必须显式声明类型~~ ← DELETE (basic TypeScript)
+  - Example of what TO include: "组件超过 200 行时必须拆分为子组件 — 本项目历史上多次出现 500+ 行组件导致维护困难"
+  - Example of what TO include: "所有表单使用 React Hook Form + Zod schema 验证 — 禁止手写 onChange 状态管理"
+
+- **状态与副作用边界** *(only include if the project has specific state management rules)*
+  - ~~业务逻辑抽离为纯函数或自定义 Hook~~ ← DELETE (generic best practice)
+  - Example of what TO include: "全局状态仅限 auth 和 theme — 其他数据通过 React Query 管理，禁止新增 Zustand store"
 
 ---
 
 ## Red-line additions
+
+<!-- VALIDATION GATE: Every rule here must:
+     1. Reference actual file paths confirmed to exist in the project
+     2. Include a "why" clause with real consequences
+     3. NOT repeat what tsconfig/eslint already enforces
+     Only include the sections below that have project-specific content. -->
 
 Add under `### 最高优先级原则（红线）`:
 
@@ -35,11 +47,17 @@ Add under `### 最高优先级原则（红线）`:
   禁止页面内直接渲染时间戳或自实现格式化函数
 ```
 
-If the team doesn't have central date utils, recommend they create one and call it out as a follow-up.
+**IMPORTANT**: Only include the date/ID rules if the project actually has these utilities. If `dateUtils` doesn't exist, don't reference it. If the project doesn't handle big integer IDs, don't include the ID rule.
+
+If the team doesn't have central date utils, recommend they create one and call it out as a follow-up — but do NOT write it into AGENTS.md as if it already exists.
 
 ---
 
 ## Section: 组件开发规范
+
+<!-- VALIDATION GATE: The directory structure below must match the ACTUAL project layout.
+     Run `ls` on the actual directories before writing this section.
+     If the project doesn't have hooks/ or enum.ts patterns, don't include them. -->
 
 ```markdown
 ### 组件目录结构
@@ -100,6 +118,11 @@ src/pages/{DomainName}/
 ---
 
 ## Section: 样式规范
+
+<!-- VALIDATION GATE: Pick ONLY the option that matches the project's actual approach.
+     Check: does the project use CSS Modules? Tailwind? Global CSS? A mix?
+     Look at actual component files to confirm — don't guess from config alone.
+     DELETE options that don't apply. -->
 
 Pick the approach that matches the project:
 
@@ -163,7 +186,12 @@ import styles from './index.module.less';
 
 ## Section: 性能与体验
 
-Add to `### 代码审查关注点 → 性能层面`:
+<!-- VALIDATION GATE: Only include performance rules that are SPECIFIC to this project.
+     "合理使用 useMemo/useCallback" is generic React advice — delete it.
+     "图片懒加载" is generic web advice — only include if the project has a specific pattern for it.
+     Keep rules that reference actual project tools, thresholds, or past incidents. -->
+
+Add to `### 代码审查关注点 → 性能层面` (only project-specific items):
 
 - 是否有不必要的重渲染？合理使用 `useMemo` / `useCallback` / `React.memo`
 - 大列表是否使用虚拟滚动？
@@ -175,3 +203,14 @@ Add `### 体验层面`:
 - 错误边界是否覆盖关键页面，避免白屏？
 - 空状态是否有引导文案 / CTA？
 - 表单失焦校验、提交防抖、按钮 loading 是否处理？
+
+---
+
+## Code examples requirement
+
+When including code examples in the generated AGENTS.md:
+
+1. **Examples must come from actual project code** (simplified if needed). Never use generic placeholder code like a rotating sphere or a "Hello World" component.
+2. **Show the project's actual patterns** — if the project uses `export async function login()` style, show that; don't show `authService.login()` object style.
+3. **Contrast examples (✅/❌) must reflect real mistakes** that have occurred or are likely in this project, not textbook anti-patterns.
+4. **Keep examples minimal** — 5-10 lines max. The goal is to show the pattern, not the full implementation.
