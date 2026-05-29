@@ -18,6 +18,73 @@ Universal sections every `AGENTS.md` should include. Adapt phrasing to the proje
 ---
 ```
 
+## Section: 项目知识库 / Navigation Map
+
+<!-- VALIDATION GATE: Include this section when the repo has multiple layers, packages,
+     runtime entry points, or task-specific folders. DELETE it for tiny projects where a
+     navigation map would duplicate the directory tree. Every path/symbol must be verified. -->
+
+This section helps future AI sessions start in the right place before applying rules. Keep it compact and factual.
+
+### Overview
+
+```markdown
+## OVERVIEW
+
+{{1-3 lines: product purpose + architecture + one standout capability}}
+```
+
+Do not write marketing copy. This is an orientation sentence, not a README.
+
+### Where To Look
+
+```markdown
+## WHERE TO LOOK
+
+| Task | Location | Notes |
+|------|----------|-------|
+| {{task category}} | `{{verified/path}}` | {{short note}} |
+```
+
+Use 5-10 rows. Prefer task routes such as "认证", "路由", "数据模型", "API 服务层", "数据库迁移", "测试", "3D 动画", "本地服务". Do not list every folder.
+
+### Code Map
+
+```markdown
+## CODE MAP
+
+| Symbol | Type | Location | Role |
+|--------|------|----------|------|
+| `{{symbol}}` | {{Function/Component/Class/Store/etc.}} | `{{verified/path}}` | {{role}} |
+```
+
+Use 3-8 stable anchors only. Good anchors include app entry points, routers, stores, request clients, database/session factories, public components, and core services. Line numbers are optional; omit them when they are likely to churn.
+
+### Commands
+
+````markdown
+## COMMANDS
+
+```bash
+# {{scope}}
+{{verified command}}
+```
+````
+
+Only include commands verified from manifests, pyproject, README, existing docs, or the user's explicit instructions. Group commands by package or runtime.
+
+### Known Follow-Ups
+
+```markdown
+## KNOWN FOLLOW-UPS
+
+- `{{verified/path}}` — {{observed TODO/gap}}
+```
+
+Only include TODOs or gaps observed in code/docs. Do not convert wishes into facts. If follow-ups are stale-prone, add an HTML comment warning near this section.
+
+---
+
 ## Section: 核心开发理念
 
 <!-- VALIDATION GATE: Each bucket MUST contain at least 1 rule that is specific to THIS project

@@ -7,7 +7,7 @@ description: Generate, refresh, or maintain a project-specific AGENTS.md / CLAUD
 
 This skill produces a project-tailored `AGENTS.md` — a document AI coding assistants read first, written as enforceable constraints rather than tutorial prose. The reference example this skill was built from is an H5 React project, but the structure generalizes to backend services, CLIs, libraries, and native apps.
 
-The output you produce should feel like a contract the AI must honor, not a friendly onboarding doc. That stylistic stance shapes every section below.
+The output you produce should feel like a contract the AI must honor, not a friendly onboarding doc. For codebases where the first failure mode is "AI edits the wrong layer or misses the right entry point", the contract should start with a compact project knowledge map: task-to-path lookup, symbol/code map, verified commands, and known follow-ups. Navigation helps the AI land in the right files; red lines tell it how to behave once it gets there.
 
 ---
 
@@ -32,6 +32,8 @@ Inspect (in parallel where possible):
 
 | Signal | What to look for |
 |--------|-----------------|
+| Task routing | Which folders/files are the correct first stop for auth, routing, API, models, tests, config, UI shell, etc.? |
+| Stable symbols | Which root app/router/store/service symbols are useful anchors for future AI edits? |
 | Import order | Is there a consistent grouping? (React → 3rd-party → internal → types → styles) |
 | Error handling | try-catch in components? Error boundaries? Service-level error wrapping? |
 | State management | Which store library? How is auth state actually stored? (memory / localStorage / cookie) |
@@ -43,6 +45,15 @@ Inspect (in parallel where possible):
 **Fact verification rule**: Every file path, utility name, or code pattern you later write into AGENTS.md must have been confirmed to exist during this scan. If you didn't see it, don't write it.
 
 Output of this phase: an internal mental model of project type, tech stack, layering, naming conventions, and any obvious style choices the user is already enforcing. Plus a list of verified facts (paths, patterns, tools) you can reference in the draft.
+
+Also capture a **navigation fact set** when the project has more than one meaningful layer or entry point:
+
+- 5-10 task routes: "If task is X, start in path Y".
+- 3-8 stable code anchors: symbol, type, file, role.
+- Verified command groups: dev, build, test, lint, services.
+- Known TODOs/follow-ups that were explicitly present in code/docs.
+
+Do not invent these. A short verified map is better than a complete-looking map that contains one false path.
 
 ### Phase 2 — Classify the project
 
@@ -102,11 +113,31 @@ Skip topics that don't apply. A library project doesn't need NavHeader rules; a 
 
 Compose the document by selecting and adapting sections from the reference templates. The skeleton below is the recommended order — drop sections that don't apply, don't invent ones that the project doesn't need.
 
+Before choosing the long contract skeleton, evaluate whether the project benefits from a **knowledge-map-first architecture**:
+
+| Use this structure when... | Prefer the stricter contract-first structure when... |
+|---|---|
+| The repo is multi-layer, monorepo, fullstack, or has multiple task entry points | The repo is small and most work starts in the same few files |
+| Future AI sessions need to find the right folder quickly | The main risk is violating hard architectural rules |
+| Existing AGENTS.md is concise and already works as a task index | Existing AGENTS.md is vague, generic, or lacks enforceable constraints |
+| The user asks for a project knowledge base / 项目知识库 | The user asks for red lines, collaboration rules, or strict AI constraints |
+
+If both apply, compose them: put the navigation map immediately after the header, then the highest-priority red lines. This gives AI a fast landing zone without weakening constraints.
+
 ```
 # {{Project Name}} — AI 开发规范 / AGENTS.md
 
 **技术栈**: {{tech list}}
 **项目类型**: {{archetype}}
+
+## OVERVIEW / 项目概览
+  (1-3 lines: what it is, architecture, standout capabilities)
+
+## WHERE TO LOOK / 任务入口
+  (task → verified path → note table)
+
+## CODE MAP / 代码锚点
+  (symbol → type → verified file:line → role table)
 
 ## 🎯 核心开发理念
   (3-5 capability buckets tailored to archetype — see writing-style.md)
@@ -132,6 +163,12 @@ Compose the document by selecting and adapting sections from the reference templ
 
 ## 🔧 公共工具与约定
   (project-specific shared utilities)
+
+## COMMANDS / 常用命令
+  (only commands verified in package scripts, pyproject, README, or existing docs)
+
+## KNOWN FOLLOW-UPS / 已知后续事项
+  (only TODOs or gaps observed in code/docs; do not turn wishes into facts)
 ```
 
 Follow `references/writing-style.md` strictly while drafting — it covers tone, the imperative voice, when to use 强制/禁止 vs 优先/推荐, and how to format examples.
@@ -153,13 +190,15 @@ Before showing the user, verify every claim in the draft:
 
 2. **Code pattern verification** — if the document says "使用 Zustand persist 持久化状态", confirm the actual store file uses `persist`. If it says "Axios 实例注入 Bearer token", confirm the interceptor code matches. Mismatches between AGENTS.md and reality are worse than having no AGENTS.md.
 
-3. **Redundancy check** — for each rule, ask: "Is this already enforced by a tool (ESLint rule, tsconfig flag, CI check)?" If yes, either:
+3. **Navigation-map verification** — for every `WHERE TO LOOK` or `CODE MAP` row, confirm the path exists and the symbol/role is still accurate. Prefer fewer rows over stale inventories. If a line number is likely to churn, omit it unless the user asked for exact anchors.
+
+4. **Redundancy check** — for each rule, ask: "Is this already enforced by a tool (ESLint rule, tsconfig flag, CI check)?" If yes, either:
    - Remove it (the tool already prevents violations), or
    - Keep it but mark: "（已由 `{{tool}}` 强制，此处记录供理解上下文）"
 
-4. **Specificity check** — for each rule, ask: "Would this rule apply to ANY project using the same tech stack?" If yes, it's generic and should be removed unless the project has a specific reason to emphasize it (e.g. the team has repeatedly violated it).
+5. **Specificity check** — for each rule, ask: "Would this rule apply to ANY project using the same tech stack?" If yes, it's generic and should be removed unless the project has a specific reason to emphasize it (e.g. the team has repeatedly violated it).
 
-5. **Example verification** — code examples in the document must come from actual project files (simplified if needed), not from templates or imagination.
+6. **Example verification** — code examples in the document must come from actual project files (simplified if needed), not from templates or imagination.
 
 ### Phase 6 — Show and revise
 
